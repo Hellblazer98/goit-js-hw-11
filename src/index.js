@@ -34,7 +34,8 @@ async function onLoad(entries, observer) {
         if (entry.isIntersecting) {
             searchQuery = input.value.trim();
             page += 1;
-            createGalleryMarkup(data.hits)
+            createGalleryMarkup(data.hits);
+            gallerySimpleLightbox.refresh();
         }
 
         if (page >= totalPages) {

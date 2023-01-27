@@ -16,32 +16,31 @@ const lightboxOptions = {
 
 const options = {
     root: null,
-    rootMargin: '0px',
+    rootMargin: '100px',
     threshold: 1.0
 }
 
 let page = 0;
 let perPage = 40;
-let searchQuery = input.value;
+let searchQuery = input.value.trim();
 
 let gallerySimpleLightbox = new SimpleLightbox('.gallery a', lightboxOptions);
 let observer = new IntersectionObserver(onLoad, options);
 
 async function onLoad(entries, observer) {
     entries.forEach(async entry => {
-        const data = await fetchPixabayApi(searchQuery, page, perPage);
-        const totalPages = data.totalHits / perPage;
         if (entry.isIntersecting) {
-            searchQuery = input.value.trim();
+            const data = await fetchPixabayApi(searchQuery, page, perPage);
+            const totalPages = Math.ceil(data.totalHits / perPage);
             page += 1;
             createGalleryMarkup(data.hits);
             gallerySimpleLightbox.refresh();
-        }
 
-        if (page >= totalPages) {
+            if (page >= totalPages) {
                 observer.unobserve(guard);
                 Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
             }
+        }
     });
 }
 
@@ -50,9 +49,8 @@ form.addEventListener('submit', onFetchGallery);
 
 function onFetchGallery(evt) {
     evt.preventDefault();
-    searchQuery = input.value.trim();
     page = 1;
-
+    searchQuery = input.value.trim();
 
     if (!searchQuery) {
         clearMarkup();
@@ -68,7 +66,6 @@ function onFetchGallery(evt) {
             } else {
                 clearMarkup();
                 createGalleryMarkup(data.hits);
-                observer.observe(guard);
                 Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
                 gallerySimpleLightbox.refresh();
 
@@ -81,6 +78,10 @@ function onFetchGallery(evt) {
                     top: cardHeight * -1,
                     behavior: "smooth",
                     });
+            }
+
+            if (data.totalHits >= perPage) {
+                observer.observe(guard);
             }
 
             
